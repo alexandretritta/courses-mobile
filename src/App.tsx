@@ -1,7 +1,11 @@
-import { useState, type FormEvent } from 'react';
-import { Check, Plus, RotateCcw, Trash2, ShoppingCart } from 'lucide-react';
+import { lazy, Suspense, useState, type FormEvent } from 'react';
+import { Check, Plus, RotateCcw, Trash2, ShoppingCart, ScanBarcode } from 'lucide-react';
 import { useShoppingList } from './hooks/useShoppingList';
 import type { Store, StoreFilter } from './types';
+
+const ScanModal = lazy(() =>
+  import('./components/ScanModal').then((m) => ({ default: m.ScanModal })),
+);
 
 const TABS: StoreFilter[] = ['Tous', 'Lidl', 'Super U', 'Autre'];
 
@@ -31,6 +35,7 @@ export default function App() {
   const [store, setStore] = useState<Store>('Lidl');
   const [price, setPrice] = useState('');
   const [showAdd, setShowAdd] = useState(false);
+  const [showScan, setShowScan] = useState(false);
 
   function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -106,7 +111,10 @@ export default function App() {
       <div className="mb-3 flex gap-2">
         <button
           type="button"
-          onClick={() => setShowAdd((v) => !v)}
+          onClick={() => {
+            setShowScan(false);
+            setShowAdd((v) => !v);
+          }}
           className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-cyan-400 py-3.5 text-sm font-bold text-slate-900 active:scale-[0.98]"
         >
           <Plus className="h-5 w-5" strokeWidth={2.5} />
@@ -114,13 +122,25 @@ export default function App() {
         </button>
         <button
           type="button"
+          onClick={() => {
+            setShowAdd(false);
+            setShowScan(true);
+          }}
+          className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-400 py-3.5 text-sm font-bold text-slate-900 active:scale-[0.98]"
+        >
+          <ScanBarcode className="h-5 w-5" strokeWidth={2.5} />
+          Scanner
+        </button>
+        <button
+          type="button"
           onClick={clearChecked}
           disabled={checkedCount === 0}
-          className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-600 bg-surface-2 px-4 py-3.5 text-sm font-semibold text-slate-200 disabled:opacity-40 active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-600 bg-surface-2 px-3 py-3.5 text-sm font-semibold text-slate-200 disabled:opacity-40 active:scale-[0.98]"
           title="Supprimer les cochés"
+          aria-label="Supprimer les cochés"
         >
           <Trash2 className="h-4 w-4" />
-          Cochés
+          <span className="hidden min-[420px]:inline">Cochés</span>
         </button>
         <button
           type="button"
@@ -249,6 +269,18 @@ export default function App() {
       <p className="mt-6 text-center text-[11px] text-slate-600">
         Alexandre Tritta · Liste courses mobile
       </p>
+
+      {showScan && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-950/95" />}>
+          <ScanModal
+            onClose={() => setShowScan(false)}
+            onAdd={(itemName, itemQty, itemStore, itemPrice) => {
+              addItem(itemName, itemQty, itemStore, itemPrice);
+              setShowScan(false);
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
