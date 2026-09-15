@@ -1,3 +1,5 @@
+import { emptyNutrients, type Nutrients } from '../types';
+
 export interface OffProduct {
   barcode: string;
   name: string;
@@ -5,6 +7,17 @@ export interface OffProduct {
   imageUrl: string | null;
   nutriscore: string | null;
   quantity: string | null;
+  nutrients: Nutrients;
+}
+
+interface OffNutriments {
+  'energy-kcal_100g'?: number;
+  'energy-kcal_serving'?: number;
+  energy_kcal_100g?: number;
+  energy_kcal_serving?: number;
+  proteins_100g?: number;
+  carbohydrates_100g?: number;
+  fat_100g?: number;
 }
 
 interface OffResponse {
@@ -16,8 +29,11 @@ interface OffResponse {
     generic_name?: string;
     brands?: string;
     image_front_small_url?: string;
+    image_front_url?: string;
     nutriscore_grade?: string;
     quantity?: string;
+    serving_size?: string;
+    nutriments?: OffNutriments;
   };
 }
 
@@ -28,6 +44,28 @@ function pickName(product: NonNullable<OffResponse['product']>): string {
     product.generic_name?.trim() ||
     ''
   );
+}
+
+function num(v: unknown): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.round(v * 10) / 10;
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = parseFloat(v.replace(',', '.'));
+    return Number.isFinite(n) ? Math.round(n * 10) / 10 : null;
+  }
+  return null;
+}
+
+function parseNutrients(product: NonNullable<OffResponse['product']>): Nutrients {
+  const n = product.nutriments || {};
+  return {
+    ...emptyNutrients(),
+    kcal100g: num(n['energy-kcal_100g'] ?? n.energy_kcal_100g),
+    protein100g: num(n.proteins_100g),
+    carbs100g: num(n.carbohydrates_100g),
+    fat100g: num(n.fat_100g),
+    kcalServing: num(n['energy-kcal_serving'] ?? n.energy_kcal_serving),
+    servingSize: product.serving_size?.trim() || null,
+  };
 }
 
 /** Lookup a supermarket barcode on the public Open Food Facts API (no key). */
@@ -41,8 +79,11 @@ export async function lookupProduct(barcode: string): Promise<OffProduct | null>
     'generic_name',
     'brands',
     'image_front_small_url',
+    'image_front_url',
     'nutriscore_grade',
     'quantity',
+    'serving_size',
+    'nutriments',
   ].join(',');
 
   const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`;
@@ -69,9 +110,10 @@ export async function lookupProduct(barcode: string): Promise<OffProduct | null>
     barcode: code,
     name,
     brand,
-    imageUrl: data.product.image_front_small_url || null,
+    imageUrl: data.product.image_front_small_url || data.product.image_front_url || null,
     nutriscore,
     quantity: data.product.quantity?.trim() || null,
+    nutrients: parseNutrients(data.product),
   };
 }
 

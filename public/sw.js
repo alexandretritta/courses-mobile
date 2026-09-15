@@ -1,31 +1,37 @@
-const CACHE = 'courses-v1';
+const CACHE = 'courses-mobile-v2';
+const BASE = '/courses-mobile/';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.svg',
-  '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png',
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + 'favicon.svg',
+  BASE + 'icon.svg',
+  BASE + 'icon-192.png',
+  BASE + 'icon-512.png',
+  BASE + 'apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()),
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  // Ne pas cacher l’API Open Food Facts
+  if (url.hostname.includes('openfoodfacts')) return;
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetched = fetch(event.request)
@@ -38,6 +44,6 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => cached);
       return cached || fetched;
-    })
+    }),
   );
 });

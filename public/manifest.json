@@ -1,8 +1,9 @@
 {
   "name": "Courses — Alexandre",
   "short_name": "Courses",
-  "description": "Liste de courses Lidl / Super U autour de Voiron / Saint-Cassien",
-  "start_url": "/",
+  "description": "Bibliothèque aliments, menus cut & courses Lidl / Super U — Voiron",
+  "start_url": "/courses-mobile/",
+  "scope": "/courses-mobile/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
@@ -10,19 +11,19 @@
   "lang": "fr",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/courses-mobile/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/courses-mobile/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/courses-mobile/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -1,7 +1,8 @@
-# Courses — liste mobile
+# Courses mobile — Alexandre Tritta
 
-Liste de courses ultra-simple (Lidl / Super U / Autre) pour Voiron / Saint-Cassien.  
-Thème sombre type Nutrition Pro · français · PWA (écran d’accueil).
+PWA française (thème sombre athlétique) pour **cut handball** : scanner Open Food Facts → bibliothèque d’aliments, menus perso, suggestions optionnelles, liste de courses Lidl / Super U (Voiron / Saint-Cassien).
+
+Base GitHub Pages : `/courses-mobile/`.
 
 ## Lancer en local
 
@@ -11,67 +12,49 @@ npm install
 npm run dev
 ```
 
-Ouvre l’URL affichée (ex. `http://localhost:5174`).
+URL typique : `http://localhost:5174/courses-mobile/`.
 
-Build production :
+Build / preview :
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Ouvrir sur le téléphone
+## Déployer sur GitHub Pages
 
-**Même Wi‑Fi :**
+1. `npm run build` → dossier `dist/`
+2. Publier `dist/` sur la branche `gh-pages` (ou Actions) avec site à la racine du dépôt **ou** en s’assurant que l’URL est `https://<user>.github.io/courses-mobile/`
+3. `vite.config.ts` a déjà `base: '/courses-mobile/'`
 
-1. Sur le PC : `npm run dev` (ou `npm run preview` après build).
-2. Note l’IP locale affichée par Vite (`Network: http://192.168.x.x:5174`).
-3. Sur l’iPhone / Android, ouvre cette URL dans Safari / Chrome.
+## Onglets (nav bas)
 
-Si l’IP n’apparaît pas, lance avec `npm run dev -- --host` (déjà activé dans `vite.config.ts`).
+| Onglet | Rôle |
+|--------|------|
+| **Scanner** | Caméra / EAN → fiche OFF (nom, marque, image, Nutri-Score, kcal & macros) → **Bibliothèque** |
+| **Bibliothèque** | Aliments persistés (`localStorage`), édition / suppression, ajout aux courses, seed ~15 aliments |
+| **Mes menus** | Création libre de repas (créneau + aliments + grammes). Ajout → courses (dédup) |
+| **Suggestions** | Idées high-protein **optionnelles** — Accepter → Mes menus + courses, ou Ignorer |
+| **Courses** | Liste groupée Lidl / Super U / Autre, kcal pour la qté, prix estimé, cases à cocher |
 
-## Installer sur l’écran d’accueil (PWA)
+## Données
 
-**iPhone (Safari)**  
-Partager → **Sur l’écran d’accueil** → Ajouter.
+- Tout est en `localStorage` (clés `courses-mobile-*-v2`)
+- Offline-ish après premier chargement (PWA + SW) ; **nouveaux scans** nécessitent le réseau (API Open Food Facts)
+- Seed starter réinjectable depuis Bibliothèque
 
-**Android (Chrome)**  
-Menu ⋮ → **Ajouter à l’écran d’accueil** / **Installer l’application**.
+## Scanner
 
-L’icône « Courses » s’ouvre en plein écran (thème sombre).
+1. Autorise la caméra (HTTPS ou localhost)
+2. Ou saisis un EAN (ex. `3017620422003`)
+3. Vérifie / complète nutrition → **Enregistrer dans la bibliothèque**
 
-## Fonctionnalités
+Fallback : BarcodeDetector natif, sinon `@zxing/browser`.
 
-- Cases à cocher larges, onglets Lidl / Super U / Autre
-- Ajout article (nom, qté, magasin, prix)
-- **Scanner** un code-barres (caméra) ou saisie manuelle → fiche produit → ajout Lidl / Super U / Autre
-- Progression `X/Y cochés` + coût restant estimé
-- Effacer les cochés / réinitialiser la liste type
-- Sauvegarde `localStorage`
+## Stack
 
-## Scanner un code-barres
-
-Bouton **Scanner** (à côté d’Ajouter) :
-
-1. Autorise la caméra, vise le code du produit (EAN-13, EAN-8, UPC).
-2. Ou saisis le code à la main (pratique sur ordinateur).
-3. La fiche s’affiche (nom, marque, Nutri-Score, photo) via Open Food Facts.
-4. Ajuste la qté (préremplie à `1`) et le prix, puis **Ajouter à Lidl** (défaut), Super U ou Autre.
-
-Produit inconnu : tu peux quand même taper un nom et l’ajouter.
-
-### Caméra & permissions
-
-- La caméra ne fonctionne qu’en **HTTPS** ou sur `localhost`.
-- Si le navigateur bloque l’accès : réglages du site → Caméra → Autoriser.
-- Sur iPhone : Safari (ou l’app PWA ajoutée à l’écran d’accueil) ; accorde la caméra au premier scan.
-- Fallback : saisie manuelle du code, toujours disponible.
-
-Exemples pour tester sans caméra :
-
-- Nutella : `3017620422003`
-- Produit inconnu : `0000000000000`
+Vite · React · TypeScript · Tailwind v4 · PWA manuelle (`public/sw.js` + `manifest.json`)
 
 ## Open Food Facts
 
-Fiches produits fournies par [Open Food Facts](https://world.openfoodfacts.org/), base libre et collaborative (données ODbL, images Creative Commons). Aucune clé API.
+Fiches via [Open Food Facts](https://world.openfoodfacts.org/) (ODbL, images CC). Aucune clé API.
